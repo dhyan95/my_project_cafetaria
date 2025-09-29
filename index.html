@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>College Bhoj - Student Cafeteria (Static)</title>
+    <!-- Load Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for Inter font and custom colors -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        'saffron': '#FF9933',
+                        'green-india': '#138808',
+                        'indigo-c': '#4f46e5',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for visual appeal and better scrollbar */
+        body {
+            background-color: #f7f7f7;
+            min-height : 100vh;
+        }
+        .scrollable-content {
+            max-height : 20rem;
+            overflow-y: auto;
+        }
+        .scrollable-list {
+            max-height : 15rem;
+            overflow-y: auto;
+        }
+        .scrollable-content::-webkit-scrollbar {
+            width : 6px;
+        }
+        .scrollable-content::-webkit-scrollbar-thumb {
+            background-color: #e5e7eb;
+            border-radius: 3px;
+        }
+        .scrollable-content::-webkit-scrollbar-track {
+            background-color: transparent;
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <!-- Global Header -->
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <span class="text-3xl mr-2">🍛</span>
+                <h1 class="text-xl sm:text-2xl font-extrabold text-gray-900 tracking-tight">
+                    College Bhoj
+                </h1>
+                <!-- Role Display is now fixed for Student -->
+                <span class="text-sm font-medium text-indigo-c ml-3 p-1 rounded-md bg-indigo-100">Student Portal (Static)</span>
+            </div>
+            <!-- Removed the 'Switch to Admin View' button -->
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+        
+        <!-- Student View (Order Placement) -->
+        <div id="student-view" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Menu List (Col 1 & 2) -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-lg">
+                <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center border-b pb-3">
+                    <span class="text-indigo-c mr-2">🍽️</span> Today's Special Menu
+                </h2>
+                <div id="menu-list" class="space-y-8">
+                    <!-- Menu categories will be injected here by JS -->
+                </div>
+            </div>
+
+            <!-- Cart & Status (Col 3) -->
+            <div class="lg:col-span-1 space-y-8">
+                <!-- Cart Section -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-indigo-100 sticky top-20">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
+                        <span class="text-indigo-c mr-2">🛒</span> Your Order
+                    </h2>
+                    
+                    <div id="order-message-box" class="p-3 rounded-lg text-sm mb-4 hidden"></div>
+
+                    <ul id="cart-items-list" class="space-y-3 mb-4 scrollable-list">
+                        <li id="empty-cart-message" class="text-gray-500 italic text-center py-4">Your cart is empty. Add some items!</li>
+                    </ul>
+
+                    <div class="pt-4 border-t border-dashed mt-4">
+                        <div class="flex justify-between items-center text-xl font-bold text-gray-900">
+                            <span>Total</span>
+                            <!-- Currency changed to INR -->
+                            <span id="cart-total">₹0.00</span>
+                        </div>
+                        <button
+                            id="place-order-button"
+                            disabled
+                            class="w-full mt-4 py-3 rounded-xl text-white font-semibold transition duration-200 shadow-md bg-gray-400 cursor-not-allowed"
+                        >
+                            Place Order Now
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Active Orders Status Section -->
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-yellow-100">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-4 flex items-center border-b pb-3">
+                        <span class="text-yellow-500 mr-2">⏳</span> Your Pending Orders
+                    </h2>
+                    <div class="p-3 bg-red-100 text-red-700 rounded-lg text-sm mb-4 font-medium">
+                        ⚠️ **Static Site Warning:** Orders placed are only visible in this session and will be lost on page refresh.
+                    </div>
+                    <ul id="student-active-orders" class="space-y-4 scrollable-list">
+                        <li class="text-gray-500 italic text-center py-4">No pending orders yet.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Modal -->
+        <div id="loading-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 z-50 flex items-center justify-center hidden">
+            <div class="bg-white p-6 rounded-xl shadow-2xl flex items-center">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-indigo-c" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="font-medium text-gray-700">Placing order locally...</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- JavaScript Logic -->
+    <script>
+        // --- DATA (LOCAL ONLY) ---
+        // Removed JSONBin keys and URL
+        
+        const initialMenuItems = [
+            // Breakfast
+            { id: 'idli-sambar', name: 'Idli Sambar', price: 35.00, category: 'Breakfast', image: '🥞', isAvailable: true },
+            { id: 'aloo-paratha', name: 'Aloo Paratha (2 Pcs)', price: 40.00, category: 'Breakfast', image: '🥞', isAvailable: true },
+            // Lunch
+            { id: 'rajma-chawal', name: 'Rajma Chawal', price: 70.00, category: 'Lunch', image: '🍚', isAvailable: true },
+            { id: 'chicken-biryani', name: 'Chicken Biryani', price: 90.00, category: 'Lunch', image: '🍗', isAvailable: true },
+            { id: 'palak-paneer', name: 'Palak Paneer w/ Naan', price: 20.00, category: 'Lunch', image: '🥬', isAvailable: true },
+            // Snacks
+            { id: 'samosa', name: 'Samosa (2 pcs)', price: 10.00, category: 'Snacks', image: '🥟', isAvailable: true },
+            { id: 'vada-pav', name: 'Vada Pav', price: 15.00, category: 'Snacks', image: '🍔', isAvailable: true },
+            // Beverages
+            { id: 'masala-chai', name: 'Masala Chai', price: 5.00, category: 'Beverages', image: '☕', isAvailable: true },
+            { id: 'sweet-lassi', name: 'Sweet Lassi', price: 5.00, category: 'Beverages', image: '🥛', isAvailable: true },
+            { id: 'water-bottle', name: 'Water Bottle', price: 2.00, category: 'Beverages', image: '💧', isAvailable: true },
+        ];
+
+        let menuItems = [...initialMenuItems];
+        let cart = {}; // { itemId: quantity }
+        let orders = []; // Global state for all orders (SESSION ONLY)
+        let orderCounter = 1; // Used for unique order IDs
+
+        const CURRENCY_SYMBOL = '₹';
+
+        // --- DOM ELEMENTS ---
+        const D = {
+            menuList: document.getElementById('menu-list'),
+            cartItemsList: document.getElementById('cart-items-list'),
+            cartTotal: document.getElementById('cart-total'),
+            placeOrderButton: document.getElementById('place-order-button'),
+            orderMessageBox: document.getElementById('order-message-box'),
+            studentActiveOrders: document.getElementById('student-active-orders'),
+            loadingModal: document.getElementById('loading-modal'),
+        };
+
+        // --- STATIC UTILITY FUNCTIONS ---
+        // Removed fetchWithRetry, fetchOrdersFromBin, saveOrdersToBin
+
+        /** Renders the categorized menu list. */
+        function renderMenuList() {
+            const availableItems = menuItems
+                .filter(item => item.isAvailable)
+                .sort((a, b) => a.category.localeCompare(b.category) || a.name.localeCompare(b.name));
+
+            D.menuList.innerHTML = '';
+
+            const groupedMenu = availableItems.reduce((acc, item) => {
+                acc[item.category] = acc[item.category] || [];
+                acc[item.category].push(item);
+                return acc;
+            }, {});
+
+            for (const category in groupedMenu) {
+                const section = document.createElement('div');
+                section.className = 'mb-8';
+                section.innerHTML = `<h3 class="text-2xl font-semibold text-indigo-c mb-4">${category}</h3><div class="grid grid-cols-1 sm:grid-cols-2 gap-4" id="category-${category.replace(/\s/g, '')}"></div>`;
+                D.menuList.appendChild(section);
+
+                const container = document.getElementById(`category-${category.replace(/\s/g, '')}`);
+                groupedMenu[category].forEach(item => {
+                    container.appendChild(createMenuItemCard(item));
+                });
+            }
+            renderCart(); 
+        }
+
+        /** Creates a single menu item card element. */
+        function createMenuItemCard(item) {
+            const card = document.createElement('div');
+            card.className = "flex items-center bg-gray-50 p-4 rounded-xl shadow-sm transition duration-300 hover:shadow-lg hover:bg-white border border-gray-100";
+            card.innerHTML = `
+                <div class="text-3xl mr-4">${item.image || '🍽️'}</div>
+                <div class="flex-grow">
+                    <h4 class="text-lg font-semibold text-gray-800">${item.name}</h4>
+                    <p class="text-sm font-bold text-green-india">${CURRENCY_SYMBOL}${item.price.toFixed(2)}</p>
+                </div>
+                <div class="flex items-center space-x-2 ml-4">
+                    <button data-item-id="${item.id}" data-action="decrease" class="p-1.5 bg-indigo-100 text-indigo-c rounded-lg hover:bg-indigo-200 disabled:opacity-50 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M20 12H4" /></svg>
+                    </button>
+                    <span id="qty-${item.id}" class="w-6 text-center font-bold text-gray-900">${cart[item.id] || 0}</span>
+                    <button data-item-id="${item.id}" data-action="increase" class="p-1.5 bg-indigo-c text-white rounded-lg hover:bg-indigo-700 transition">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
+                    </button>
+                </div>
+            `;
+            
+            card.querySelectorAll('button').forEach(button => {
+                button.addEventListener('click', handleCartAction);
+            });
+            return card;
+        }
+
+        /** Handles increasing or decreasing the item quantity in the cart. */
+        function handleCartAction(event) {
+            const itemId = event.currentTarget.getAttribute('data-item-id');
+            const action = event.currentTarget.getAttribute('data-action');
+            let quantity = cart[itemId] || 0;
+
+            if (action === 'increase') {
+                quantity++;
+            } else if (action === 'decrease' && quantity > 0) {
+                quantity--;
+            }
+
+            if (quantity > 0) {
+                cart[itemId] = quantity;
+            } else {
+                delete cart[itemId];
+            }
+
+            // Update quantity display on the menu item card
+            const qtyEl = document.getElementById(`qty-${itemId}`);
+            if (qtyEl) qtyEl.textContent = quantity; 
+            
+            renderCart(); // Re-render cart and place order button state
+        }
+        
+        /** Renders the cart summary. */
+        function renderCart() {
+            const cartItemsArray = getCartItemsArray();
+            let total = 0;
+            D.cartItemsList.innerHTML = '';
+
+            if (cartItemsArray.length === 0) {
+                D.cartItemsList.innerHTML = '<li id="empty-cart-message" class="text-gray-500 italic text-center py-4">Your cart is empty. Add some items!</li>';
+                D.placeOrderButton.disabled = true;
+                D.placeOrderButton.className = 'w-full mt-4 py-3 rounded-xl text-white font-semibold transition duration-200 shadow-md bg-gray-400 cursor-not-allowed';
+                D.cartTotal.textContent = `${CURRENCY_SYMBOL}0.00`;
+                return;
+            }
+
+            cartItemsArray.forEach(item => {
+                total += item.subtotal;
+                const listItem = document.createElement('li');
+                listItem.className = "flex justify-between items-center text-sm border-b pb-2 last:border-b-0";
+                listItem.innerHTML = `<span class="text-gray-700 font-medium">${item.quantity}x ${item.name}</span><span class="text-gray-900 font-semibold">${CURRENCY_SYMBOL}${item.subtotal.toFixed(2)}</span>`;
+                D.cartItemsList.appendChild(listItem);
+            });
+
+            D.cartTotal.textContent = `${CURRENCY_SYMBOL}${total.toFixed(2)}`;
+            D.placeOrderButton.disabled = false;
+            D.placeOrderButton.className = 'w-full mt-4 py-3 rounded-xl text-white font-semibold transition duration-200 shadow-md bg-green-india hover:bg-green-700';
+        }
+
+        /** Converts the cart object to a detailed array. */
+        function getCartItemsArray() {
+            return Object.keys(cart).map(itemId => {
+                const item = menuItems.find(i => i.id === itemId);
+                if (!item) return null; 
+                return {
+                    id: itemId,
+                    name: item.name,
+                    price: item.price,
+                    quantity: cart[itemId],
+                    subtotal: item.price * cart[itemId]
+                };
+            }).filter(Boolean);
+        }
+
+        /** Shows a temporary message in the cart section. */
+        function showMessageBox(message, type) {
+            D.orderMessageBox.textContent = message;
+            D.orderMessageBox.classList.remove('hidden', 'bg-red-100', 'text-red-700', 'bg-green-100', 'text-green-700', 'bg-blue-100', 'text-blue-700');
+            
+            if (type === 'success') {
+                D.orderMessageBox.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'error') {
+                D.orderMessageBox.classList.add('bg-red-100', 'text-red-700');
+            } else { // info
+                D.orderMessageBox.classList.add('bg-blue-100', 'text-blue-700');
+            }
+
+            setTimeout(() => {
+                D.orderMessageBox.classList.add('hidden');
+            }, 5000);
+        }
+
+        /** Handles placing an order by adding it to the local array. */
+        async function handlePlaceOrder() {
+            const cartItemsArray = getCartItemsArray();
+            const total = cartItemsArray.reduce((sum, item) => sum + item.subtotal, 0);
+
+            if (cartItemsArray.length === 0) {
+                showMessageBox("Your cart is empty!", 'error');
+                return;
+            }
+            
+            D.loadingModal.classList.remove('hidden');
+
+            // Simulate network delay
+            await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+            // 1. Create the new order object
+            const newOrder = {
+                id: `o-${orderCounter++}`,
+                userId: `Student-${Math.floor(Math.random() * 900) + 100}`, // Random student ID
+                items: JSON.parse(JSON.stringify(cartItemsArray)), // Deep copy
+                total: total,
+                status: 'Pending', 
+                timestamp: new Date().toISOString(),
+                ordererIdShort: `ST-${Math.floor(Math.random() * 99) + 1}`,
+            };
+            
+            // 2. Update the local orders array (NO SAVE TO API)
+            orders.push(newOrder);
+            
+            // 3. Clear cart and update UI
+            cart = {};
+            renderCart();
+            renderMenuList(); // Re-render menu to reset quantities
+            renderStudentActiveOrders();
+            D.loadingModal.classList.add('hidden');
+            showMessageBox(`Order #${newOrder.id} placed successfully! (Local Session Only)`, 'success');
+        }
+
+
+        /** Renders the student's active orders. */
+        function renderStudentActiveOrders() {
+            // Sort by Pending, then timestamp (newest first)
+            const userOrders = orders
+                .filter(order => order.status !== 'Completed')
+                .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            D.studentActiveOrders.innerHTML = '';
+
+            if (userOrders.length === 0) {
+                D.studentActiveOrders.innerHTML = '<li class="text-gray-500 italic text-center py-4">No pending orders yet.</li>';
+                return;
+            }
+
+            userOrders.forEach(order => {
+                const statusColor = order.status === 'Pending' ? 'yellow' : 'blue';
+                const listItem = document.createElement('li');
+                listItem.className = `p-3 bg-${statusColor}-50 rounded-lg shadow-sm border-l-4 border-${statusColor}-400`;
+                listItem.innerHTML = `
+                    <p class="text-sm font-semibold text-${statusColor}-800 flex justify-between items-center">
+                        Order #${order.id}
+                        <span class="px-2 py-0.5 text-xs font-medium rounded-full bg-${statusColor}-200 text-${statusColor}-800">
+                            ${order.status}
+                        </span>
+                    </p>
+                    <p class="text-xs text-gray-600 mt-1">Total: <span class="font-bold">${CURRENCY_SYMBOL}${order.total.toFixed(2)}</span></p>
+                `;
+                D.studentActiveOrders.appendChild(listItem);
+            });
+        }
+        
+        // --- INITIALIZATION ---
+        
+        D.placeOrderButton.addEventListener('click', handlePlaceOrder);
+
+        /** Initializes the application. */
+        async function init() {
+             // NO API CALLS HERE - purely static initialization
+             renderMenuList();
+             renderStudentActiveOrders();
+        }
+
+        init();
+        
+    </script>
+</body>
+</html>
